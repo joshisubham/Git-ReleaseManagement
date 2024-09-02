@@ -16,9 +16,14 @@ pipeline {
         stage('Fetch code') {
             steps {
                 script {
-                    echo "1>>Building Branch : ${env.BRANCH_NAME}"
-                    // Ensure that we are fetching the correct branch name
-                    BRANCH_NAME = env.BRANCH_NAME ?: sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+                    // Try to get the branch name from the environment variable set by Jenkins (Multibranch Pipeline)
+                    BRANCH_NAME = env.BRANCH_NAME
+
+                    // If BRANCH_NAME is not set, fall back to using git command (useful for regular pipelines)
+                    if (!BRANCH_NAME) {
+                        BRANCH_NAME = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+                    }
+
                     echo "Building branch: ${BRANCH_NAME}"
                 }
             }
