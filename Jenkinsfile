@@ -16,6 +16,7 @@ pipeline {
         stage('Fetch code') {
             steps {
                 script {
+                    echo "1>>Building Branch : ${env.BRANCH_NAME}"
                     // Ensure that we are fetching the correct branch name
                     BRANCH_NAME = env.BRANCH_NAME ?: sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
                     echo "Building branch: ${BRANCH_NAME}"
