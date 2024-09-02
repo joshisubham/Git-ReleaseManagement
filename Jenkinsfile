@@ -30,13 +30,20 @@ pipeline {
                         RELEASE = true
                         echo "Branch '${BRANCH_NAME}' is a release branch."
                         // Remove '-SNAPSHOT' from version
-                        sh "mvn versions:set -DnewVersion=\$(echo ${POM_VERSION} | sed 's/-SNAPSHOT//')"
+//                         sh "mvn versions:set -DnewVersion=\$(echo ${POM_VERSION} | sed 's/-SNAPSHOT//')"
                     } else if (BRANCH_NAME.startsWith('feature/')) {
                         RELEASE = false
                         echo "Branch '${BRANCH_NAME}' is a feature branch."
-                        // Increase version and add '-SNAPSHOT'
-                        sh "mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.nextPatchVersion}-SNAPSHOT"
-                    } else {
+                    }else if (BRANCH_NAME.startsWith('hotfix/')) {
+                        RELEASE = false
+                         echo "Branch '${BRANCH_NAME}' is a hotfix branch."
+                    }else if (BRANCH_NAME.startsWith('master')) {
+                        RELEASE = false
+                         echo "Branch '${BRANCH_NAME}' is a master branch."
+                    }else if (BRANCH_NAME.startsWith('develop')) {
+                        RELEASE = false
+                         echo "Branch '${BRANCH_NAME}' is a develop branch."
+                    }else {
                         error "Branch '${BRANCH_NAME}' does not match 'release/' or 'feature/' prefix."
                     }
                 }
