@@ -9,7 +9,7 @@ pipeline {
     stages { 
         stage('Fetch code') {
           steps{
-              git branch: 'master', url:'https://github.com/joshisubham/spring-jenkins.git'
+              git branch: 'master', url:'https://github.com/joshisubham/Git-ReleaseManagement.git'
           }  
         }
         stage('Build') {
@@ -45,10 +45,10 @@ pipeline {
                         nexusUrl: 'localhost:8081',
                         groupId: 'QA',
                         version: "${env.BUILD_ID}",
-                        repository: 'spring-jenkins-repo',
+                        repository: 'releasemanagement-snapshots',
                         credentialsId: 'NexusLogin',
                         artifacts: [
-                            [artifactId: 'spring-jenkins',
+                            [artifactId: 'Git-ReleaseManagement',
                             classifier: '',
                             file: artifactPath,
                             type: 'jar']
