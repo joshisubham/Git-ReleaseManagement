@@ -55,7 +55,13 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
+	<distributionManagement>
+		<repository>
+			<id>releasemanagement-snapshots</id>
+			<name>releasemanagement snapshot</name>
+			<url>http://localhost:8081/repository/releasemanagement-snapshots/</url>
+		</repository>
+	</distributionManagement>
 	<build>
 		<plugins>
 			<plugin>
