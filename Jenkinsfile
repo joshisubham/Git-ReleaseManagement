@@ -1,6 +1,9 @@
 pipeline {
     agent any
-
+    options {
+        // Allow the pipeline to restart from a specific stage
+        stageRestart()
+    }
     tools {
         jdk "openjdk-17"
         maven "Maven3"
@@ -97,23 +100,44 @@ pipeline {
                     if (hotfixType == 'hotfix') {
                         echo "Releasing hotfix version: ${newVersion}"
                         sh "mvn versions:set -DnewVersion=${newVersion}"
-
-                        // Commit the version change
                         sshagent(credentials: ['GitCreds']) {
                             sh """
                                 git config user.name "Jenkins"
                                 git config user.email "subhamjoshi466@gmail.com"
+                                git reset --hard
                                 # Ensure we're on the correct branch and clean state
                                 git checkout ${env.GIT_BRANCH}
                                 git reset --hard HEAD
 
                                 # Set remote URL
                                 git remote set-url origin ${SSH_GIT_URL}
+
+                                # Make changes and push
                                 git add pom.xml
-                                git commit -m "Setting hotfix version to ${newVersion}"
-                                git push origin ${BRANCH_NAME}
+                                git clean -f -d  # Remove untracked files and directories
+                                git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
+                                git push origin ${env.GIT_BRANCH} || true
+
+                                # Perform Maven release
+                                mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
                             """
                         }
+//                         // Commit the version change
+//                         sshagent(credentials: ['GitCreds']) {
+//                             sh """
+//                                 git config user.name "Jenkins"
+//                                 git config user.email "subhamjoshi466@gmail.com"
+//                                 # Ensure we're on the correct branch and clean state
+//                                 git checkout ${env.GIT_BRANCH}
+//                                 git reset --hard HEAD
+//
+//                                 # Set remote URL
+//                                 git remote set-url origin ${SSH_GIT_URL}
+//                                 git add pom.xml
+//                                 git commit -m "Setting hotfix version to ${newVersion}"
+//                                 git push origin ${BRANCH_NAME}
+//                             """
+//                         }
                     } else {
                         echo "Hotfix step skipped."
                     }
