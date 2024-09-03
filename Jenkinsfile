@@ -67,7 +67,7 @@ pipeline {
                             git clean -f -d  # Remove untracked files and directories
                             git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
                             git push origin ${env.GIT_BRANCH} || true
-
+                            ssh -T git@github.com
                             # Perform Maven release
                             mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
                         """
