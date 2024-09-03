@@ -54,7 +54,7 @@ pipeline {
                         sh """
                             git config user.name "Jenkins"
                             git config user.email "subhamjoshi466@gmail.com"
-
+                            git reset --hard
                             # Ensure we're on the correct branch and clean state
                             git checkout ${env.GIT_BRANCH}
                             git reset --hard HEAD
@@ -66,7 +66,7 @@ pipeline {
                             git add pom.xml
                             git clean -f -d  # Remove untracked files and directories
                             git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
-                            git push origin ${env.GIT_BRANCH}
+                            git push origin ${env.GIT_BRANCH} || true
 
                             # Perform Maven release
                             mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
