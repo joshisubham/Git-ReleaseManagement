@@ -98,13 +98,21 @@ pipeline {
                         sh "mvn versions:set -DnewVersion=${newVersion}"
 
                         // Commit the version change
-                        sh """
-                            git config user.name "Jenkins"
-                            git config user.email "subhamjoshi466@gmail.com"
-                            git add pom.xml
-                            git commit -m "Setting hotfix version to ${newVersion}"
-                            git push origin ${BRANCH_NAME}
-                        """
+                        sshagent(credentials: ['GitCreds']) {
+                            sh """
+                                git config user.name "Jenkins"
+                                git config user.email "subhamjoshi466@gmail.com"
+                                # Ensure we're on the correct branch and clean state
+                                git checkout ${env.GIT_BRANCH}
+                                git reset --hard HEAD
+
+                                # Set remote URL
+                                git remote set-url origin ${SSH_GIT_URL}
+                                git add pom.xml
+                                git commit -m "Setting hotfix version to ${newVersion}"
+                                git push origin ${BRANCH_NAME}
+                            """
+                        }
                     } else {
                         echo "Hotfix step skipped."
                     }
