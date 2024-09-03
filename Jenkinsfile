@@ -72,17 +72,20 @@ pipeline {
                             git push origin ${env.GIT_BRANCH} || true
                             
                             # Perform Maven release
-                            mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
+                            mvn -Dmaven.test.skip=true versions:set -DgenerateBackupPoms=false -DnewVersion=${newVersion}
+                            mvn -Dmaven.test.skip=true clean deploy
+
                         """
                     }
 
                 }
             }
         }
+//         #                             mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
         stage('Prepare Hotfix') {
             when {
                 expression {
-                    BRANCH_NAME.startsWith('release')
+                    BRANCH_NAME.startsWith('hotfix')
                 }
             }
             steps {
