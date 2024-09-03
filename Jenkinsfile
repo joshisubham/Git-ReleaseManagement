@@ -43,7 +43,7 @@ pipeline {
         stage('Prepare Version') {
             when {
                 expression {
-                    BRANCH_NAME.startsWith('develop') || BRANCH_NAME.startsWith('hotfix')
+                    BRANCH_NAME.startsWith('develop')
                 }
             }
             steps {
@@ -83,15 +83,53 @@ pipeline {
                     }
 
                     // Update the POM version
-//                     sh "mvn versions:set -DnewVersion=${newVersion}"
-//
-//                     // Commit the version change
-//                     sh """
-//                         git config user.name "Jenkins"
-//                         git config user.email "subhamjoshi466@gmail.com"
-//                         git add pom.xml
-//                         git commit -m "Setting version to ${newVersion}"
-//                     """
+                    sh "mvn versions:set -DnewVersion=${newVersion}"
+                    sh """
+                        git config user.name "Jenkins"
+                        git config user.email "subhamjoshi466@gmail.com"
+                        git add pom.xml
+                        git commit -m "Setting version to ${newVersion}"
+                    """
+                }
+            }
+        }
+        stage('Prepare Hotfix') {
+            when {
+                expression {
+                    BRANCH_NAME.startsWith('release')
+                }
+            }
+            steps {
+                script {
+                    def version = POM_VERSION
+                    def newVersion
+                    def releaseType = input(
+                        id: 'ReleaseType', message: 'Select Hotfix Type',
+                        parameters: [
+                            choice(choices: ['hotfix', 'skip'], description: 'Choose the type of release (select "skip" to bypass):', name: 'ReleaseType')
+                        ]
+                    )
+
+                    if (releaseType == 'hotfix') {
+                        // Handle hotfix: Remove '-SNAPSHOT', increment the patch version
+                        newVersion = version.replaceAll("-SNAPSHOT", "")
+                        def versionParts = newVersion.split('\\.')
+                        newVersion = "${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}"
+                        echo "Releasing hotfix version: ${newVersion}"
+
+                        // Update the POM version
+                        sh "mvn versions:set -DnewVersion=${newVersion}"
+
+                        // Commit the version change
+                        sh """
+                            git config user.name "Jenkins"
+                            git config user.email "subhamjoshi466@gmail.com"
+                            git add pom.xml
+                            git commit -m "Setting version to ${newVersion}"
+                        """
+                    } else {
+                        echo "Hotfix step skipped."
+                    }
                 }
             }
         }
