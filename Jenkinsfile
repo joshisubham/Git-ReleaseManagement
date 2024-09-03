@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    options {
-        // Allow the pipeline to restart from a specific stage
-        stageRestart()
-    }
     tools {
         jdk "openjdk-17"
         maven "Maven3"
