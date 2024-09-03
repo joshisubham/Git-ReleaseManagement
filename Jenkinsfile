@@ -64,7 +64,8 @@ pipeline {
 
                             # Make changes and push
                             git add pom.xml
-                            git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>"
+                            git clean -f -d  # Remove untracked files and directories
+                            git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
                             git push origin ${env.GIT_BRANCH}
 
                             # Perform Maven release
