@@ -58,6 +58,9 @@ pipeline {
                             git checkout ${env.GIT_BRANCH}
                             git reset --hard HEAD
 
+                            # Pull the latest changes from the remote branch
+                            git pull origin ${env.GIT_BRANCH}
+
                             # Set remote URL
                             git remote set-url origin ${SSH_GIT_URL}
 
