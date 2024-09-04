@@ -10,6 +10,7 @@ pipeline {
         BRANCH_NAME = ""
         RELEASE = false
         SSH_GIT_URL = "https://github.com/joshisubham/Git-ReleaseManagement.git"
+        MAVEN_SETTINGS = credentials('maven-settings-xml')
     }
 
     stages {
@@ -47,7 +48,7 @@ pipeline {
                     echo "Releasing version: ${newVersion}"
 
                     // Update the POM version and perform release
-                    sh "mvn versions:set -DnewVersion=${newVersion}"
+                    sh "mvn versions:set -DnewVersion=${newVersion} --settings ${MAVEN_SETTINGS}"
 
                     sshagent(credentials: ['GitCreds']) {
                         sh """
@@ -71,7 +72,7 @@ pipeline {
                             git push origin ${env.GIT_BRANCH} || true
                             
                             # Perform Maven release
-                            mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT
+                            mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT --settings ${MAVEN_SETTINGS}
                         """
                     }
 
