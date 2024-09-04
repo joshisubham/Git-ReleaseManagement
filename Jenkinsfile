@@ -36,11 +36,12 @@ pipeline {
                             choice(choices: ['major', 'minor', 'skip'], description: 'Choose the type of release:', name: 'ReleaseType')
                         ]
                     )
-                    if(releaseType == 'major' || releaseType == 'minor') {
+                    def newVersion = ""
+                    if (releaseType == 'major' || releaseType == 'minor' ) {
                         def version = POM_VERSION.replaceAll("-SNAPSHOT", "")
                         def versionParts = version.split('\\.')
 
-                        def newVersion
+
 
                         if (releaseType == 'major') {
                             newVersion = "${versionParts[0].toInteger() + 1}.0.0"
@@ -78,9 +79,8 @@ pipeline {
                             """
                         }
                     } else {
-                        echo "Skipping Releasing version: ${newVersion}"
+                        echo "Skipping release."
                     }
-
                 }
             }
         }
