@@ -9,7 +9,7 @@
 	</parent>
 	<groupId>com.springboot</groupId>
 	<artifactId>Git-ReleaseManagement</artifactId>
-	<version>6.0.1-SNAPSHOT</version>
+	<version>7.0.1-SNAPSHOT</version>
 	<name>Git-ReleaseManagement</name>
 	<description>Demo project for Spring Boot</description>
 	<url />
@@ -56,16 +56,16 @@
 	</dependencies>
 
 	<distributionManagement>
-		<repository>
+		<snapshotRepository>
 			<id>releasemanagement-snapshots</id>
 			<name>releasemanagement snapshot</name>
 			<url>http://localhost:8081/repository/releasemanagement-snapshots/</url>
-		</repository>
-		<snapshotRepository>
+		</snapshotRepository>
+		<repository>
 			<id>releasemanagement-releases</id>
 			<name>releasemanagement releases</name>
 			<url>http://localhost:8081/repository/releasemanagement-releases/</url>
-		</snapshotRepository>
+		</repository>
 	</distributionManagement>
 	<build>
 		<plugins>
