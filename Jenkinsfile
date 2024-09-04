@@ -33,47 +33,52 @@ pipeline {
                     def releaseType = input(
                         id: 'ReleaseType', message: 'Select Release Type',
                         parameters: [
-                            choice(choices: ['major', 'minor'], description: 'Choose the type of release:', name: 'ReleaseType')
+                            choice(choices: ['major', 'minor', 'skip'], description: 'Choose the type of release:', name: 'ReleaseType')
                         ]
                     )
-                    def version = POM_VERSION.replaceAll("-SNAPSHOT", "")
-                    def versionParts = version.split('\\.')
+                    if(releaseType == 'major' || releaseType == 'minor') {
+                        def version = POM_VERSION.replaceAll("-SNAPSHOT", "")
+                        def versionParts = version.split('\\.')
 
-                    def newVersion
-                    if (releaseType == 'major') {
-                        newVersion = "${versionParts[0].toInteger() + 1}.0.0"
-                    } else if (releaseType == 'minor') {
-                        newVersion = "${versionParts[0]}.${versionParts[1].toInteger() + 1}.0"
-                    }
-                    echo "Releasing version: ${newVersion}"
+                        def newVersion
 
-                    // Update the POM version and perform release
-                    sh "mvn versions:set -DnewVersion=${newVersion} --settings ${MAVEN_SETTINGS}"
+                        if (releaseType == 'major') {
+                            newVersion = "${versionParts[0].toInteger() + 1}.0.0"
+                        } else if (releaseType == 'minor') {
+                            newVersion = "${versionParts[0]}.${versionParts[1].toInteger() + 1}.0"
+                        }
+                        echo "Releasing version: ${newVersion}"
 
-                    sshagent(credentials: ['GitCreds']) {
-                        sh """
-                            git config user.name "Jenkins"
-                            git config user.email "subhamjoshi466@gmail.com"
-                            git reset --hard
-                            # Ensure we're on the correct branch and clean state
-                            git checkout ${env.GIT_BRANCH}
-                            git reset --hard HEAD
+                        // Update the POM version and perform release
+                        sh "mvn versions:set -DnewVersion=${newVersion} --settings ${MAVEN_SETTINGS}"
 
-                            # Pull the latest changes from the remote branch
-                            git pull --rebase origin ${env.GIT_BRANCH}
+                        sshagent(credentials: ['GitCreds']) {
+                            sh """
+                                git config user.name "Jenkins"
+                                git config user.email "subhamjoshi466@gmail.com"
+                                git reset --hard
+                                # Ensure we're on the correct branch and clean state
+                                git checkout ${env.GIT_BRANCH}
+                                git reset --hard HEAD
 
-                            # Set remote URL
-                            git remote set-url origin ${SSH_GIT_URL}
+                                # Pull the latest changes from the remote branch
+                                git pull --rebase origin ${env.GIT_BRANCH}
 
-                            # Make changes and push
-                            git add pom.xml
-                            git clean -f -d  # Remove untracked files and directories
-                            git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
-                            git push origin ${env.GIT_BRANCH} || true
-                            
-                            # Perform Maven release
-                            mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT --settings ${MAVEN_SETTINGS}
-                        """
+                                # Set remote URL
+                                git remote set-url origin ${SSH_GIT_URL}
+
+                                # Make changes and push
+                                git add pom.xml
+                                git clean -f -d  # Remove untracked files and directories
+                                git commit -m "Setting version to ${newVersion}" --author="Jenkins <subhamjoshi466@gmail.com>" || true
+                                git push origin ${env.GIT_BRANCH} || true
+
+                                # Perform Maven release
+                                mvn --batch-mode clean release:prepare release:perform -Dresume=false -DautoVersionSubmodules=true -DdryRun=false -Darguments="-DskipITs -DskipTests" -Dmaven.test.skip=true -Dtag=spring-jenkins-${newVersion} -DreleaseVersion=${newVersion} -DdevelopmentVersion=${versionParts[0]}.${versionParts[1]}.${versionParts[2].toInteger() + 1}-SNAPSHOT --settings ${MAVEN_SETTINGS}
+                            """
+                        }
+                    } else {
+                        echo "Skipping Releasing version: ${newVersion}"
                     }
 
                 }
