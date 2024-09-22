@@ -1,5 +1,3 @@
-create database PathLab;
-use PathLab;
 create table dept(
 deptid int not null auto_increment,
 deptname varchar(50) not null,
